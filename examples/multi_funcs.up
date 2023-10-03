@@ -1,8 +1,11 @@
-func x(a: int) -> int:
+func x(a: int) -> int {
     return y() + a
+}
 
-func y() -> int:
+func y() -> int {
     return 5
+}
 
-func main() -> int:
+func main() -> int {
     print(x())
+}

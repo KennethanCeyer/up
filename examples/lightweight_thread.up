@@ -1,0 +1,14 @@
+func call(id: string, loop: int) -> nil {
+    for i in range(loop) {
+        print(id + ": " + i)
+    }
+}
+
+func main() -> nil {
+    call("main", 3)
+    for i in range(3) {
+        up call("sub" + i, 3)
+    }
+    sleep(1)
+    print("done")
+}

@@ -1,6 +1,8 @@
-func x(a: int, b: int) -> int:
+func x(a: int, b: int) -> int {
 	return a + b
+}
 
-func main() -> nil:
+func main() -> nil {
 	y = x(a, b)
 	print(y)
+}

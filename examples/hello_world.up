@@ -1,5 +1,7 @@
-func hello() -> string:
+func hello() -> string {
     return "Hello"
+}
 
-func main() -> nil:
+func main() -> nil {
     print(hello() + ", world!")
+}
