@@ -27,7 +27,12 @@ Example:
 go run . examples/for_loop.up
 ```
 
+Look [examples/](./examples) to see more examples.
 This project is working in progress. There may be an error in the code's behavior.
+
+**Demo video**
+
+[![IDemo (YouTube)](https://img.youtube.com/vi/U9f3PYHm6fk/0.jpg)](https://youtu.be/U9f3PYHm6fk)
 
 ## Specs
 
