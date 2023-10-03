@@ -41,11 +41,11 @@ Up Language draws inspiration from both Go and Python, combining the performance
 
 - **Class Support:** Like Python, Up Language embraces class support, allowing for object-oriented programming.
 
-- **Lightweight Threads (Stream):** Up introduces lightweight threads and communication between them through streams, facilitating concurrency.
+- **Thread Friendliness:** Similar to Go, Up allows for lightweight threading, potentially leading to thread friendliness.
+
+- **Lightweight Threads:** Up introduces lightweight threads and communication between them through streams, facilitating concurrency.
 
 - **Dynamic Typing:** Up supports dynamic typing, providing flexibility in programming.
-
-- **Thread Friendliness:** Similar to Go, Up allows for lightweight threading, potentially leading to thread friendliness.
 
 - **Strong Typing (Variable-level):** Similar to Go, Up allows for strong typing at the variable level, potentially leading to performance improvements.
 
