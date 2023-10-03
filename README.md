@@ -17,7 +17,17 @@ The `up` language aspires to marry the ease of use seen in languages like Python
 
 ## Getting Started
 
-[TBD: Example codes will be added soon.]
+```bash
+go run . {.up file path}
+```
+
+Example:
+
+```bash
+go run . examples/for_loop.up
+```
+
+This project is working in progress. There may be an error in the code's behavior.
 
 ## Contributing
 

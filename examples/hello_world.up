@@ -1,0 +1,5 @@
+func hello() -> string:
+    return "Hello"
+
+func main() -> nil:
+    print(hello() + ", world!")

@@ -1,0 +1,9 @@
+func x(a: int, b: int) -> int:
+    y: int = 0
+	for x in range(b):
+        y += a
+    return y
+
+func main() -> nil:
+	y = x(a, b)
+	print(y)

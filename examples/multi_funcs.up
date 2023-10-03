@@ -1,0 +1,8 @@
+func x(a: int) -> int:
+    return y() + a
+
+func y() -> int:
+    return 5
+
+func main() -> int:
+    print(x())
