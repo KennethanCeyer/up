@@ -1,0 +1,6 @@
+func main() -> nil {
+    func int.sum(val: int) -> int {
+        return this + val
+    }
+    print(1.sum(3))
+}

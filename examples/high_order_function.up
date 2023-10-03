@@ -1,0 +1,11 @@
+func x(fn: callable[int, int], val: int) -> int {
+    return fn(val) + val
+}
+
+func y(a: int) -> int {
+    return a * a
+}
+
+func main() -> nil {
+    print(x(y, 3))
+}
