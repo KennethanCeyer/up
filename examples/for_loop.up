@@ -7,6 +7,6 @@ func x(a: int, b: int) -> int {
 }
 
 func main() -> nil {
-	y = x(a, b)
-	print(y)
+	y = x(2, 4)
+	print(y) // 8
 }
