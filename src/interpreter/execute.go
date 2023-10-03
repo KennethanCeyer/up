@@ -122,6 +122,8 @@ func Execute(filepath string) {
 		fmt.Println("Error in lexical analysis:", err)
 		return
 	}
+
+	// for logging.
 	interpreter.VisualizeTokens(tokens)
 
 	ast, err := interpreter.Parse(tokens)
@@ -130,6 +132,7 @@ func Execute(filepath string) {
 		return
 	}
 
+	// for logging.
 	interpreter.VisualizeNode(ast)
 
 	env := NewEnvironment()

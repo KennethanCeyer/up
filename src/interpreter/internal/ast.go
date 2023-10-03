@@ -58,11 +58,12 @@ func (n *FunctionCallNode) String() string {
 
 type AssignmentNode struct {
 	VarName string
+	Type    string
 	Value   Node
 }
 
 func (n *AssignmentNode) String() string {
-	return n.VarName + " = " + n.Value.String()
+	return n.VarName + ": " + n.Type + " = " + n.Value.String()
 }
 
 // Statements
@@ -117,7 +118,6 @@ func (n *FuncDeclarationNode) String() string {
 	return "func " + n.Name + "(" + strings.Join(paramStrs, ", ") + ") -> " + n.ReturnType + " {\n\t" + strings.Join(bodyStrs, "\n\t") + "\n}"
 }
 
-// Top-level construct
 type ProgramNode struct {
 	Functions []*FuncDeclarationNode
 }

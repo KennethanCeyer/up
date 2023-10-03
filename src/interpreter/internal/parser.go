@@ -10,6 +10,14 @@ type Parser struct {
 	pos    int
 }
 
+func isAssignmentOperator(t TokenType) bool {
+	return t == ASSIGN || t == ADD_ASSIGN || t == SUB_ASSIGN || t == MUL_ASSIGN || t == DIV_ASSIGN
+}
+
+func (p *Parser) isTypeAssignment(offset int) bool {
+	return p.lookahead(offset).Type == COLON && p.lookahead(offset+1).Type == IDENTIFIER && isAssignmentOperator(p.lookahead(offset+2).Type)
+}
+
 func (p *Parser) consume(t TokenType) Token {
 	if p.pos < len(p.tokens) && p.tokens[p.pos].Type == t {
 		p.pos++
@@ -55,31 +63,15 @@ func (p *Parser) parseParameter() *ParameterNode {
 
 func (p *Parser) parseBinOp() *BinOpNode {
 	left := p.parseExpression()
-	opToken := p.consume(ADD) // For simplicity, assuming only "+" operation for now
+	opToken := p.current()
+	switch opToken.Type {
+	case ADD, SUB, MUL, DIV:
+		p.pos++
+	default:
+		panic(fmt.Sprintf("Unexpected token %s for binary operation at [%d:%d]", p.current().Type, p.current().Row, p.current().Col))
+	}	
 	right := p.parseExpression()
 	return &BinOpNode{Left: left, Op: opToken.Value, Right: right}
-}
-
-func (p *Parser) parseAssignment() *AssignmentNode {
-	varName := p.parseIdentifier().Name
-	switch p.current().Type {
-	case ASSIGN:
-		p.consume(ASSIGN)
-	case ADD_ASSIGN:
-		p.consume(ADD_ASSIGN)
-		return &AssignmentNode{
-			VarName: varName,
-			Value: &BinOpNode{
-				Left:  &IdentifierNode{Name: varName},
-				Op:    "+",
-				Right: p.parseExpression(),
-			},
-		}
-	default:
-		panic(fmt.Sprintf("Unexpected token %s for assignment at [%d:%d]", p.current().Type, p.current().Row, p.current().Col))
-	}
-	value := p.parseExpression()
-	return &AssignmentNode{VarName: varName, Value: value}
 }
 
 func (p *Parser) parseFunctionCall() *FunctionCallNode {
@@ -97,6 +89,40 @@ func (p *Parser) parseFunctionCall() *FunctionCallNode {
 	return &FunctionCallNode{FunctionName: funcName, Arguments: args}
 }
 
+func (p *Parser) parseAssignment() *AssignmentNode {
+	varName := p.parseIdentifier().Name
+
+	var varType string
+	// Check if type annotation is present
+	if p.current().Type == COLON {
+		p.consume(COLON) // Consume the colon
+		typeToken := p.consume(IDENTIFIER)
+		varType = typeToken.Value
+	}
+
+	var value Node
+	switch p.current().Type {
+	case ASSIGN:
+		p.consume(ASSIGN)
+		value = p.parseExpression()
+	case ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN:
+		opToken := p.current()
+		p.pos++
+		// Check if type is specified with compound assignments, which is not allowed.
+		if varType != "" {
+			panic(fmt.Sprintf("Cannot specify type with compound assignment at [%d:%d]", opToken.Row, opToken.Col))
+		}
+		value = &BinOpNode{
+			Left:  &IdentifierNode{Name: varName},
+			Op:    opToken.Value[:1], // Assuming "+=", "-=", "*=", and "/=" are the token values, we take only the first character
+			Right: p.parseExpression(),
+		}
+	default:
+		panic(fmt.Sprintf("Unexpected token %s for assignment at [%d:%d]", p.current().Type, p.current().Row, p.current().Col))
+	}
+	return &AssignmentNode{VarName: varName, Type: varType, Value: value}
+}
+
 func (p *Parser) parseForLoop() *ForLoopNode {
 	p.consume(FOR)
 	variable := p.parseIdentifier().Name
@@ -105,18 +131,25 @@ func (p *Parser) parseForLoop() *ForLoopNode {
 	p.consume(LPAREN)
 	rng := p.parseExpression()
 	p.consume(RPAREN)
-	p.consume(COLON)
+	p.consume(LBRACE)
+
 	var body []Node
-	for p.current().Type != ENDFOR {
+	for p.current().Type != RBRACE && p.current().Type != EOF {
 		body = append(body, p.parseExpression())
 	}
-	p.consume(ENDFOR)
+	p.consume(RBRACE)
 	return &ForLoopNode{Variable: variable, Range: rng, Body: body}
 }
 
 func (p *Parser) parseFunction() *FuncDeclarationNode {
 	p.consume(FUNC)
-	funcName := p.parseIdentifier()
+	var funcName *IdentifierNode
+    if p.current().Type == MAIN {
+        funcName = &IdentifierNode{Name: "main"}
+        p.consume(MAIN)
+    } else {
+        funcName = p.parseIdentifier()
+    }
 	p.consume(LPAREN)
 	var parameters []*ParameterNode
 	if p.current().Type != RPAREN {
@@ -129,31 +162,47 @@ func (p *Parser) parseFunction() *FuncDeclarationNode {
 	p.consume(RPAREN)
 	p.consume(ARROW)
 	returnType := p.parseIdentifier()
-	p.consume(COLON)
+	p.consume(LBRACE)
 	var body []Node
-	for p.current().Type != FUNC && p.current().Type != EOF {
-		body = append(body, p.parseExpression())
+	for p.current().Type != RBRACE && p.current().Type != EOF {
+		if p.current().Type == RETURN {
+			body = append(body, p.parseReturn())
+		} else {
+			body = append(body, p.parseExpression())
+		}
 	}
+	p.consume(RBRACE)
 	return &FuncDeclarationNode{Name: funcName.Name, Parameters: parameters, ReturnType: returnType.Name, Body: body}
+}
+
+func (p *Parser) parseReturn() *ReturnNode {
+	p.consume(RETURN)
+	value := p.parseExpression()
+	return &ReturnNode{Value: value}
 }
 
 func (p *Parser) parseExpression() Node {
 	switch p.current().Type {
 	case IDENTIFIER:
+		// for logging.
+		fmt.Println(p.current(), p.lookahead(1), p.lookahead(2))
+
 		if p.lookahead(1).Type == LPAREN { 
-			return p.parseFunctionCall()
-		} else if p.lookahead(1).Type == ASSIGN {
-			return p.parseAssignment()
-		}
-		return p.parseIdentifier()
+            return p.parseFunctionCall()
+        } else if isAssignmentOperator(p.lookahead(1).Type) || p.isTypeAssignment(1) {
+            return p.parseAssignment()
+        }
+        return p.parseIdentifier()
 	case INT:
 		return p.parseInt()
 	case STRING:
 		return p.parseString()
 	case FOR:
 		return p.parseForLoop()
-	case ADD: // This might not be needed if "+" is always between two numbers or identifiers
+	case ADD, SUB, MUL, DIV:
 		return p.parseBinOp()
+	case RETURN:
+		return p.parseReturn()
 	default:
 		panic(fmt.Sprintf("Unexpected token %s at [%d:%d]", p.current().Type,  p.current().Row, p.current().Col))
 	}
