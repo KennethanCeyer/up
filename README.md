@@ -36,6 +36,18 @@ This project is working in progress. There may be an error in the code's behavio
 
 ## Specs
 
+### What is this project for?
+
+In terms of taking Up in the direction of Go performance-wise, we plan to make three big improvements to the interpreter.
+
+1. adding the concept of typed (rather than typed) assignments to variables, to improve dynamic conversion inefficiencies in inter-variable operations.
+
+2. scheduling threads at runtime in the interpreter to minimize system space transitions, streamlining thread resources by reducing the proportion of kernel calls, and attempting to avoid the problems of Python's GIL in runtime design based on CAS atomic operators and communication sequential processes (CSP). (Making threads as efficient as possible in the interpreter is the main goal of this project).
+
+3. minimizing the critical section by using Sweep Algorithm without using GC's RefCount.
+
+This is a draft of the project direction, and we believe that these three main requirements distinguish this project as an experimental project that attempts to improve performance in the interpreter.
+
 ### Background
 
 Up Language draws inspiration from both Go and Python, combining the performance-oriented aspects of Go with the user-friendly characteristics of Python. Here are some key differences that set Up apart:
