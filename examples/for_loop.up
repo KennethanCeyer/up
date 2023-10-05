@@ -1,6 +1,6 @@
 func x(a: int, b: int) -> int {
     y: int = 0
-	for x in range(b) {
+    for x in range(b) {
         y += a
     }
     return y
