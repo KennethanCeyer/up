@@ -2,12 +2,17 @@ package interpreter
 
 import (
 	"fmt"
-	"io/ioutil"
-	"github.com/KennethanCeyer/up/src/interpreter/internal"
+	"os"
+
+	interpreter "github.com/KennethanCeyer/up/src/interpreter/internal"
 )
 
-func Execute(filepath string) {
-	data, err := ioutil.ReadFile(filepath)
+type Options struct {
+	Debug bool
+}
+
+func Execute(filepath string, options *Options) {
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
@@ -20,7 +25,9 @@ func Execute(filepath string) {
 	}
 
 	// for logging.
-	interpreter.VisualizeTokens(tokens)
+	if options.Debug {
+		interpreter.VisualizeTokens(tokens)
+	}
 
 	ast, err := interpreter.Parse(tokens)
 	if err != nil {
@@ -29,11 +36,15 @@ func Execute(filepath string) {
 	}
 
 	// for logging.
-	interpreter.VisualizeNode(ast)
+	if options.Debug {
+		interpreter.VisualizeNode(ast)
+	}
 
 	env := interpreter.NewEnvironment()
 	interpreter.ExecuteNode(ast, env)
 
 	// for logging.
-	env.Visualize()
+	if options.Debug {
+		env.Visualize()
+	}
 }

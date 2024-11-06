@@ -88,7 +88,6 @@ func formatValue(value interface{}) string {
 }
 
 func ExecuteNode(node Node, env *Environment) interface{} {
-	VisualizeNode(node)
 	switch n := node.(type) {
 	case *ProgramNode:
 		var result interface{}

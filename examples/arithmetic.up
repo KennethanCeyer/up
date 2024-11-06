@@ -3,6 +3,6 @@ func x(a: int, b: int) -> int {
 }
 
 func main() -> nil {
-	y = x(a, b)
+	y = x(2, 7)
 	print(y)
 }
