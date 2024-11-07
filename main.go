@@ -16,7 +16,7 @@ var options core.Options
 
 func parseOptions() {
 	flag.BoolVar(&options.Debug, "debug", true, "")
-	flag.BoolVar(&options.Compile, "compile", true, "")
+	flag.BoolVar(&options.Compile, "compile", false, "")
 	flag.Parse()
 }
 
