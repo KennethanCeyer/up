@@ -12,7 +12,7 @@ import (
 
 var options interpreter.Options
 
-func ParseOptions() {
+func parseOptions() {
 	flag.BoolVar(&options.Debug, "debug", true, "")
 	flag.Parse()
 }
@@ -38,6 +38,7 @@ func main() {
 		}
 		return
 	}
+	parseOptions()
 	cwd, err := os.Getwd()
     if err != nil {
         fmt.Println("Error getting current directory:", err)

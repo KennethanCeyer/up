@@ -1,4 +1,4 @@
-func x(fn: callable[int, int], val: int) -> int {
+func x(fn: func(int) -> int, val: int) -> int {
     return fn(val) + val
 }
 

@@ -17,6 +17,7 @@ const (
 	COMMA                 = "COMMA"
 	ARROW                 = "ARROW"
 	IDENTIFIER            = "IDENTIFIER"
+	FLOAT                 = "FLOAT"
 	INT                   = "INT"
 	ADD                   = "ADD"
 	SUB                   = "SUB"
@@ -82,14 +83,10 @@ func Lexer(input string) ([]Token, error) {
 				default:
 					tokens = append(tokens, Token{Type: IDENTIFIER, Value: identifier, Row: row, Col: col})
 				}
-			case input[i] == '/':
-				if i+1 < len(input) && input[i+1] == '/' {
-					i += 2
-					for i < len(input) && input[i] != '\n' {
-						i++
-					}
-				} else {
-					return nil, fmt.Errorf("unexpected character '/' at %d:%d", row, col)
+			case input[i] == '/' && i+1 < len(input) && input[i+1] == '/':
+				i += 2
+				for i < len(input) && input[i] != '\n' {
+					i++
 				}
 			case input[i] == ' ' || input[i] == '\t':
 				i++

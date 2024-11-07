@@ -10,6 +10,14 @@ type Node interface {
 }
 
 // Expressions
+type FloatNode struct {
+	Value float64
+}
+
+func (n *FloatNode) String() string {
+	return strconv.FormatFloat(n.Value, 'f', -1, 64)
+}
+
 type IntNode struct {
 	Value int
 }

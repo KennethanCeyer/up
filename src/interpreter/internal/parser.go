@@ -42,6 +42,12 @@ func (p *Parser) parseIdentifier() *IdentifierNode {
 	return &IdentifierNode{Name: token.Value}
 }
 
+func (p *Parser) parseFloat() *FloatNode {
+	token := p.consume(FLOAT)
+	value, _ := strconv.ParseFloat(token.Value, 64)
+	return &FloatNode{Value: value}
+}
+
 func (p *Parser) parseInt() *IntNode {
 	token := p.consume(INT)
 	value, _ := strconv.Atoi(token.Value)
@@ -50,7 +56,6 @@ func (p *Parser) parseInt() *IntNode {
 
 func (p *Parser) parseString() *StringNode {
 	token := p.consume(STRING)
-	// Assuming the lexer provides string tokens without surrounding quotes
 	return &StringNode{Value: token.Value}
 }
 
@@ -59,19 +64,6 @@ func (p *Parser) parseParameter() *ParameterNode {
 	p.consume(COLON)
 	typeToken := p.consume(IDENTIFIER)
 	return &ParameterNode{Name: identifier.Name, Type: typeToken.Value}
-}
-
-func (p *Parser) parseBinOp() *BinOpNode {
-	left := p.parseExpression()
-	opToken := p.current()
-	switch opToken.Type {
-	case ADD, SUB, MUL, DIV:
-		p.pos++
-	default:
-		panic(fmt.Sprintf("Unexpected token %s for binary operation at [%d:%d]", p.current().Type, p.current().Row, p.current().Col))
-	}	
-	right := p.parseExpression()
-	return &BinOpNode{Left: left, Op: opToken.Value, Right: right}
 }
 
 func (p *Parser) parseFunctionCall() *FunctionCallNode {
@@ -91,11 +83,10 @@ func (p *Parser) parseFunctionCall() *FunctionCallNode {
 
 func (p *Parser) parseAssignment() *AssignmentNode {
 	varName := p.parseIdentifier().Name
-
 	var varType string
-	// Check if type annotation is present
+
 	if p.current().Type == COLON {
-		p.consume(COLON) // Consume the colon
+		p.consume(COLON)
 		typeToken := p.consume(IDENTIFIER)
 		varType = typeToken.Value
 	}
@@ -108,13 +99,12 @@ func (p *Parser) parseAssignment() *AssignmentNode {
 	case ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN:
 		opToken := p.current()
 		p.pos++
-		// Check if type is specified with compound assignments, which is not allowed.
 		if varType != "" {
 			panic(fmt.Sprintf("Cannot specify type with compound assignment at [%d:%d]", opToken.Row, opToken.Col))
 		}
 		value = &BinOpNode{
 			Left:  &IdentifierNode{Name: varName},
-			Op:    opToken.Value[:1], // Assuming "+=", "-=", "*=", and "/=" are the token values, we take only the first character
+			Op:    opToken.Value[:1],
 			Right: p.parseExpression(),
 		}
 	default:
@@ -182,29 +172,87 @@ func (p *Parser) parseReturn() *ReturnNode {
 }
 
 func (p *Parser) parseExpression() Node {
+	left := p.parsePrimary()
+
+	for precedence := getPrecedence(p.current().Type); precedence > 0; precedence = getPrecedence(p.current().Type) {
+		left = p.parseBinOp(left, precedence)
+	}
+
+	return left
+}
+
+func (p *Parser) parseTypedDeclaration() *AssignmentNode {
+	varName := p.parseIdentifier().Name
+	p.consume(COLON)
+	typeToken := p.consume(IDENTIFIER)
+	varType := typeToken.Value
+
+	var value Node
+	if p.current().Type == ASSIGN {
+		p.consume(ASSIGN)
+		value = p.parseExpression()
+	}
+
+	return &AssignmentNode{VarName: varName, Type: varType, Value: value}
+}
+
+func (p *Parser) parsePrimary() Node {
 	switch p.current().Type {
 	case IDENTIFIER:
-		// for logging.
-		fmt.Println(p.current(), p.lookahead(1), p.lookahead(2))
-
-		if p.lookahead(1).Type == LPAREN { 
-            return p.parseFunctionCall()
-        } else if isAssignmentOperator(p.lookahead(1).Type) || p.isTypeAssignment(1) {
-            return p.parseAssignment()
-        }
-        return p.parseIdentifier()
+		if p.lookahead(1).Type == LPAREN {
+			return p.parseFunctionCall()
+		} else if isAssignmentOperator(p.lookahead(1).Type) || p.lookahead(1).Type == COLON {
+			return p.parseAssignment()
+		}
+		return p.parseIdentifier()
 	case INT:
 		return p.parseInt()
+	case FLOAT:
+		return p.parseFloat()
 	case STRING:
 		return p.parseString()
+	case LPAREN:
+		p.consume(LPAREN)
+		expr := p.parseExpression()
+		p.consume(RPAREN)
+		return expr
 	case FOR:
 		return p.parseForLoop()
-	case ADD, SUB, MUL, DIV:
-		return p.parseBinOp()
-	case RETURN:
-		return p.parseReturn()
 	default:
-		panic(fmt.Sprintf("Unexpected token %s at [%d:%d]", p.current().Type,  p.current().Row, p.current().Col))
+		panic(fmt.Sprintf("Unexpected token %s at [%d:%d]", p.current().Type, p.current().Row, p.current().Col))
+	}
+}
+
+func (p *Parser) parseBinOp(left Node, minPrecedence int) Node {
+	for {
+		opToken := p.current()
+		precedence := getPrecedence(opToken.Type)
+
+		if precedence < minPrecedence {
+			break
+		}
+
+		p.pos++
+		right := p.parsePrimary()
+
+		nextPrecedence := getPrecedence(p.current().Type)
+		if precedence < nextPrecedence {
+			right = p.parseBinOp(right, precedence+1)
+		}
+
+		left = &BinOpNode{Left: left, Op: opToken.Value, Right: right}
+	}
+	return left
+}
+
+func getPrecedence(tokenType TokenType) int {
+	switch tokenType {
+	case MUL, DIV:
+		return 2
+	case ADD, SUB:
+		return 1
+	default:
+		return 0
 	}
 }
 

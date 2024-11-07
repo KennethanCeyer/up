@@ -4,5 +4,5 @@ func x(a: int, b: int) -> int {
 
 func main() -> nil {
 	y = x(2, 7)
-	print(y)
+	print(y) // 9
 }

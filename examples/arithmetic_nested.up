@@ -1,0 +1,8 @@
+func x(a: int, b: int, c: int, d: int, e: int) -> int {
+	return (a + b) * c + d / e
+}
+
+func main() -> nil {
+	y = x(4, 2, 3, 6, 3)
+	print(y) // 20
+}
