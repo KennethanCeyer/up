@@ -1,24 +1,20 @@
-package interpreter
+package up
 
 import (
 	"fmt"
 	"os"
 
-	interpreter "github.com/KennethanCeyer/up/src/interpreter/internal"
+	core "github.com/KennethanCeyer/up/src/core"
 )
 
-type Options struct {
-	Debug bool
-}
-
-func Execute(filepath string, options *Options) {
+func Execute(filepath string, options *core.Options) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
 	}
 
-	tokens, err := interpreter.Lexer(string(data))
+	tokens, err := core.Lexer(string(data))
 	if err != nil {
 		fmt.Println("Error in lexical analysis:", err)
 		return
@@ -26,10 +22,10 @@ func Execute(filepath string, options *Options) {
 
 	// for logging.
 	if options.Debug {
-		interpreter.VisualizeTokens(tokens)
+		core.VisualizeTokens(tokens)
 	}
 
-	ast, err := interpreter.Parse(tokens)
+	ast, err := core.Parse(tokens)
 	if err != nil {
 		fmt.Println("Error in parsing:", err)
 		return
@@ -37,11 +33,11 @@ func Execute(filepath string, options *Options) {
 
 	// for logging.
 	if options.Debug {
-		interpreter.VisualizeNode(ast)
+		core.VisualizeNode(ast)
 	}
 
-	env := interpreter.NewEnvironment()
-	interpreter.ExecuteNode(ast, env)
+	env := core.NewEnvironment()
+	core.ExecuteNode(ast, env)
 
 	// for logging.
 	if options.Debug {

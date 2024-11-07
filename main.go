@@ -7,13 +7,16 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/KennethanCeyer/up/src/interpreter"
+	compiler "github.com/KennethanCeyer/up/src/compiler"
+	core "github.com/KennethanCeyer/up/src/core"
+	interpreter "github.com/KennethanCeyer/up/src/interpreter"
 )
 
-var options interpreter.Options
+var options core.Options
 
 func parseOptions() {
 	flag.BoolVar(&options.Debug, "debug", true, "")
+	flag.BoolVar(&options.Compile, "compile", true, "")
 	flag.Parse()
 }
 
@@ -46,5 +49,10 @@ func main() {
     }
 	filename := os.Args[1]
 	absolutePath := filepath.Join(cwd, filename)
-	interpreter.Execute(absolutePath, &options)
+	fmt.Println(options)
+	if options.Compile {
+		compiler.Execute(absolutePath, &options)
+	} else {
+		interpreter.Execute(absolutePath, &options)
+	}
 }
